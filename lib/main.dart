@@ -4,6 +4,7 @@ import 'package:diary/screens/home_screen.dart';
 import 'package:diary/screens/login_screen.dart';
 import 'package:diary/services/authService.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import this for the User class
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,8 +14,15 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthService(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        StreamProvider<User?>(
+          create: (context) =>
+              Provider.of<AuthService>(context, listen: false).userStream,
+          initialData: null,
+        ),
+      ],
       child: MyApp(),
     ),
   );
@@ -22,6 +30,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,15 +41,14 @@ class MyApp extends StatelessWidget {
 }
 
 class CheckScreen extends StatelessWidget {
-  const CheckScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthService>(context);
-    print(authProvider.user);
-    if (authProvider.user == null) {
+    final user = Provider.of<User?>(context);
+
+    if (user == null) {
       return LoginScreen();
     } else {
-      return AddNoteScreen();
+      return HomeScreen();
     }
   }
 }

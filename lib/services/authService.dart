@@ -4,18 +4,20 @@ import 'package:flutter/material.dart';
 class AuthService extends ChangeNotifier {
   final auth = FirebaseAuth.instance;
   User? _user;
-  User? get user => _user;
+  Stream<User?> get userStream => auth.authStateChanges(); // Stream of the user
 
   AuthService() {
     _init();
   }
 
   Future<void> _init() async {
-    _user = auth.currentUser;
+    _user = auth.currentUser; 
     notifyListeners();
   }
 
-  Future<UserCredential> login(String email, password) async {
+  User? get user => _user;
+
+  Future<UserCredential> login(String email, String password) async {
     try {
       UserCredential uc = await auth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -34,15 +36,11 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<String?> getCurrentUserEmail() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      return user.email;
-    } else {
-      return null;
-    }
+    User? user = auth.currentUser;
+    return user?.email;
   }
 
-  Future<UserCredential> signup(String email, password) async {
+  Future<UserCredential> signup(String email, String password) async {
     try {
       UserCredential uc = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
@@ -53,5 +51,4 @@ class AuthService extends ChangeNotifier {
       throw Exception(e.code);
     }
   }
-
 }

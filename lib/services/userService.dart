@@ -28,4 +28,19 @@ class UserService {
     return _firestore.collection("CustomUsers").snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => User.fromFirestore(doc)).toList());
   }
+
+  Future<User?> getUserByEmail(String email) async {
+    try {
+      DocumentSnapshot snapshot =
+          await _firestore.collection('CustomUsers').doc(email).get();
+      if (snapshot.exists) {
+        return User.fromFirestore(snapshot);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching user: $e');
+      throw Exception(e);
+    }
+  }
 }

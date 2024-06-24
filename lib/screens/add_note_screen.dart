@@ -1,6 +1,11 @@
 import 'dart:ui';
+import 'package:diary/screens/home_screen.dart';
+import 'package:diary/services/authService.dart';
 import 'package:diary/services/noteService.dart';
+import 'package:diary/widgets/Drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddNoteScreen extends StatefulWidget {
   const AddNoteScreen({super.key});
@@ -21,12 +26,31 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     dateController.text = "${DateTime.now().toLocal()}".split(' ')[0];
   }
 
+  bool isValidTitleController(String title) {
+    return title.isNotEmpty;
+  }
+
+  bool isValidBodyController(String body) {
+    return body.isNotEmpty;
+  }
+
+  void showSnackBar(String message, {bool isSuccess = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isSuccess ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<User?>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Add Note"),
       ),
+      drawer: CustomDrawer(),
       body: Stack(
         children: [
           Container(
@@ -115,13 +139,39 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                         SizedBox(height: 20),
                         Center(
                           child: ElevatedButton(
-                            onPressed: () {
-                              noteService.saveNoteToFirestore(
-                                dateController.text,
-                                titleController.text,
-                                bodyController.text,
-                                'user@example.com',
-                              );
+                            onPressed: () async {
+                              final authProvider = Provider.of<AuthService>(
+                                  context,
+                                  listen: false);
+                              final userEmail = user?.email ?? '';
+                              final title = titleController.text;
+                              final body = bodyController.text;
+
+                              if (isValidTitleController(title) &&
+                                  isValidBodyController(body)) {
+                                try {
+                                  await noteService.saveNoteToFirestore(
+                                    dateController.text,
+                                    title,
+                                    body,
+                                    userEmail,
+                                  );
+                                  showSnackBar("Note added successfully!",
+                                      isSuccess: true);
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => HomeScreen(),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  showSnackBar("Failed to add note: $e");
+                                }
+                              } else {
+                                showSnackBar(
+                                  'Please enter ${isValidTitleController(title) ? '' : 'title'}${isValidTitleController(title) && isValidBodyController(body) ? '' : ' and '}${isValidBodyController(body) ? '' : 'body'}.',
+                                );
+                              }
                             },
                             child: Text("Save"),
                           ),
