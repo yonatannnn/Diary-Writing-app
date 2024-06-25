@@ -37,7 +37,38 @@ class NoteService extends ChangeNotifier {
 
   Stream<List<Note>> getNotes() {
     return _firestore.collection("Notes").snapshots().map((snapshot) =>
-    
         snapshot.docs.map((doc) => Note.fromFirestore(doc)).toList());
+  }
+
+  Future<void> deleteNoteFromFirestore(String docId) async {
+    try {
+      await _firestore.collection('Notes').doc(docId).delete();
+      print('Note deleted successfully!');
+    } catch (e) {
+      print('Error deleting note: $e');
+      throw Exception('Error deleting note: $e');
+    }
+  }
+
+  Future<void> updateNoteInFirestore(
+    String id,
+    String date,
+    String title,
+    String body,
+    String userEmail,
+  ) async {
+    try {
+      await _firestore.collection('Notes').doc(id).update({
+        'date': date,
+        'title': title,
+        'body': body,
+        'userEmail': userEmail,
+      });
+
+      print('Note data updated successfully!');
+    } catch (e) {
+      print('Error updating note data: $e');
+      throw Exception(e);
+    }
   }
 }

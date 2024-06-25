@@ -1,10 +1,12 @@
 import 'dart:ui';
+import 'package:diary/screens/add_note_screen.dart';
 import 'package:diary/screens/login_screen.dart';
 import 'package:diary/services/authService.dart';
 import 'package:diary/services/noteService.dart';
 import 'package:diary/services/userService.dart';
 import 'package:diary/widgets/Drawer.dart';
 import 'package:diary/widgets/single_note_widget.dart';
+import 'package:diary/widgets/welcome.dart';
 import 'package:flutter/material.dart';
 import 'package:diary/models/note_model.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +20,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthService>(context);
     final user = Provider.of<User?>(context);
+    print('user ${authProvider.user}');
     if (user == null) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -57,22 +60,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Hi, ${user.email}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'These are your Diaries',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Color.fromARGB(255, 254, 252, 252),
-                      ),
-                    ),
+                    Welcome(),
                     SizedBox(height: 20),
                     Expanded(
                       child: StreamBuilder<List<Note>>(
@@ -118,6 +106,7 @@ class HomeScreen extends StatelessWidget {
                               itemCount: userNotes.length,
                               itemBuilder: (context, index) {
                                 return NoteWidget(
+                                  email: userNotes[index].userEmail,
                                   id: userNotes[index].id,
                                   title: userNotes[index].title,
                                   body: userNotes[index].body,
@@ -135,6 +124,17 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigate to the add note screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddNoteScreen()),
+          );
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
       ),
     );
   }

@@ -76,7 +76,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           widget._emailController.text, widget._passwordController.text);
 
       User user = User(
-        email: widget._emailController.text,
+        email: widget._emailController.text.toLowerCase(),
         firstName: widget._usernameController.text,
         lastName: widget._lastnameController.text,
         password: widget._passwordController.text,

@@ -1,18 +1,20 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:diary/screens/home_screen.dart';
 import 'package:diary/screens/registration_screen.dart';
 import 'package:diary/services/authService.dart';
-import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
-  LoginScreen({super.key});
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  LoginScreen({Key? key}) : super(key: key);
+
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
   void login() async {
@@ -20,7 +22,10 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    if (!_isValidEmail(widget._emailController.text)) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    // Validation checks
+    if (!_isValidEmail(_emailController.text)) {
       _showErrorDialog("Invalid Email");
       setState(() {
         _isLoading = false;
@@ -28,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (!_isValidPassword(widget._passwordController.text)) {
+    if (!_isValidPassword(_passwordController.text)) {
       _showErrorDialog("Invalid Password");
       setState(() {
         _isLoading = false;
@@ -36,10 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final authService = AuthService();
     try {
-      await authService.login(
-          widget._emailController.text, widget._passwordController.text);
+      await authService.login(_emailController.text, _passwordController.text);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -116,9 +119,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             "Login",
                             style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -130,12 +134,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color: Color.fromRGBO(143, 148, 251, 1)),
+                              color: Color.fromRGBO(143, 148, 251, 1),
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                  color: Color.fromRGBO(143, 148, 251, .2),
-                                  blurRadius: 20.0,
-                                  offset: Offset(0, 10)),
+                                color: Color.fromRGBO(143, 148, 251, .2),
+                                blurRadius: 20.0,
+                                offset: Offset(0, 10),
+                              ),
                             ],
                           ),
                           child: Column(
@@ -145,29 +151,33 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                        color:
-                                            Color.fromRGBO(143, 148, 251, 1)),
+                                      color: Color.fromRGBO(143, 148, 251, 1),
+                                    ),
                                   ),
                                 ),
                                 child: TextField(
-                                  controller: widget._emailController,
+                                  controller: _emailController,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "Email",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "Email",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                               Container(
                                 padding: EdgeInsets.all(8.0),
                                 child: TextField(
-                                  controller: widget._passwordController,
+                                  controller: _passwordController,
                                   obscureText: true,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "Password",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "Password",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -194,9 +204,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Text(
                                 "Login",
                                 style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18),
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
                               ),
                             ),
                           ),
@@ -206,14 +217,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextButton(
                         onPressed: () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => RegistrationScreen()));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RegistrationScreen(),
+                            ),
+                          );
                         },
                         child: Text(
                           "Don't have an account? REGISTER",
-                          style:
-                              TextStyle(color: Color.fromARGB(255, 245, 29, 5)),
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 245, 29, 5),
+                          ),
                         ),
                       ),
                     ],

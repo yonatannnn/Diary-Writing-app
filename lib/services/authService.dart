@@ -2,27 +2,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AuthService extends ChangeNotifier {
-  final auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
-  Stream<User?> get userStream => auth.authStateChanges(); // Stream of the user
+  User? get user => _user;
+  Stream<User?> get userStream => _auth.authStateChanges();
 
-  AuthService() {
-    _init();
-  }
+  AuthService._(); // Private constructor for singleton pattern
+  static final AuthService _instance = AuthService._();
+  factory AuthService() => _instance;
 
   Future<void> _init() async {
-    _user = auth.currentUser; 
+    _user = _auth.currentUser;
     notifyListeners();
   }
 
-  User? get user => _user;
-
   Future<UserCredential> login(String email, String password) async {
     try {
-      UserCredential uc = await auth.signInWithEmailAndPassword(
+      UserCredential uc = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
       _user = uc.user;
       notifyListeners();
+      print('User logged in: ${_user?.email}');
       return uc;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
@@ -30,19 +30,19 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await auth.signOut();
+    await _auth.signOut();
     _user = null;
     notifyListeners();
   }
 
   Future<String?> getCurrentUserEmail() async {
-    User? user = auth.currentUser;
+    User? user = _auth.currentUser;
     return user?.email;
   }
 
   Future<UserCredential> signup(String email, String password) async {
     try {
-      UserCredential uc = await auth.createUserWithEmailAndPassword(
+      UserCredential uc = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       _user = uc.user;
       notifyListeners();

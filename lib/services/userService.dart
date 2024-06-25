@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diary/models/user_model.dart';
+import 'package:flutter/material.dart';
 
-class UserService {
+class UserService extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> saveUserToFirestore(
@@ -10,11 +11,12 @@ class UserService {
     String lastName,
     String password,
   ) async {
+    String newEmail = email.toLowerCase();
     try {
-      await _firestore.collection('CustomUsers').doc(email).set({
+      await _firestore.collection('CustomUsers').doc(newEmail).set({
         'firstName': firstName,
         'lastName': lastName,
-        'email': email,
+        'email': newEmail,
         'password': password,
       });
       print('User data saved successfully!');
@@ -30,6 +32,7 @@ class UserService {
   }
 
   Future<User?> getUserByEmail(String email) async {
+    print('email ====== ${email}');
     try {
       DocumentSnapshot snapshot =
           await _firestore.collection('CustomUsers').doc(email).get();
