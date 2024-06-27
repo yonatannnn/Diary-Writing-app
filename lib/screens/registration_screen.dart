@@ -1,25 +1,24 @@
-import 'package:animate_do/animate_do.dart';
-import 'package:diary/models/user_model.dart';
-import 'package:diary/screens/home_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:diary/screens/login_screen.dart';
 import 'package:diary/services/authService.dart';
 import 'package:diary/services/userService.dart';
-import 'package:flutter/material.dart';
+import 'package:animate_do/animate_do.dart';
 
 class RegistrationScreen extends StatefulWidget {
-  RegistrationScreen({super.key});
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _lastnameController = TextEditingController();
+  RegistrationScreen({Key? key}) : super(key: key);
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _lastnameController = TextEditingController();
   bool _isLoading = false;
 
   void signup() async {
@@ -27,10 +26,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _isLoading = true;
     });
 
-    final authService = AuthService();
-    final userService = UserService();
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userService = Provider.of<UserService>(context, listen: false);
 
-    if (!_isValidEmail(widget._emailController.text)) {
+    if (!_isValidEmail(_emailController.text)) {
       _showErrorDialog('Invalid email');
       setState(() {
         _isLoading = false;
@@ -38,7 +37,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return;
     }
 
-    if (!_isValidUsername(widget._usernameController.text)) {
+    if (!_isValidUsername(_usernameController.text)) {
       _showErrorDialog('Please enter your First Name');
       setState(() {
         _isLoading = false;
@@ -46,7 +45,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return;
     }
 
-    if (!_isValidLastName(widget._lastnameController.text)) {
+    if (!_isValidLastName(_lastnameController.text)) {
       _showErrorDialog('Please enter your Last Name');
       setState(() {
         _isLoading = false;
@@ -54,7 +53,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return;
     }
 
-    if (!_isValidPassword(widget._passwordController.text)) {
+    if (!_isValidPassword(_passwordController.text)) {
       _showErrorDialog('Password must be at least 6 characters long');
       setState(() {
         _isLoading = false;
@@ -62,8 +61,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       return;
     }
 
-    if (widget._confirmPasswordController.text !=
-        widget._passwordController.text) {
+    if (_confirmPasswordController.text != _passwordController.text) {
       _showErrorDialog('Passwords do not match');
       setState(() {
         _isLoading = false;
@@ -72,38 +70,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
 
     try {
-      await authService.signup(
-          widget._emailController.text, widget._passwordController.text);
-
-      User user = User(
-        email: widget._emailController.text.toLowerCase(),
-        firstName: widget._usernameController.text,
-        lastName: widget._lastnameController.text,
-        password: widget._passwordController.text,
-      );
+      await authService.signup(_emailController.text, _passwordController.text);
 
       await userService.saveUserToFirestore(
-        widget._emailController.text,
-        widget._usernameController.text,
-        widget._lastnameController.text,
-        widget._passwordController.text,
+        _emailController.text,
+        _usernameController.text,
+        _lastnameController.text,
+        _passwordController.text,
       );
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
-        );
-      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
     } catch (e) {
-      if (mounted) {
-        _showErrorDialog(e.toString());
-      }
+      _showErrorDialog(e.toString());
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -158,10 +143,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ),
-          if (_isLoading)
-            Center(
-              child: CircularProgressIndicator(),
-            ),
           SingleChildScrollView(
             child: Container(
               height: MediaQuery.of(context).size.height,
@@ -179,9 +160,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           child: Text(
                             "Register",
                             style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -193,12 +175,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color: Color.fromRGBO(143, 148, 251, 1)),
+                              color: Color.fromRGBO(143, 148, 251, 1),
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                  color: Color.fromRGBO(143, 148, 251, .2),
-                                  blurRadius: 20.0,
-                                  offset: Offset(0, 10)),
+                                color: Color.fromRGBO(143, 148, 251, .2),
+                                blurRadius: 20.0,
+                                offset: Offset(0, 10),
+                              ),
                             ],
                           ),
                           child: Column(
@@ -208,17 +192,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                        color:
-                                            Color.fromRGBO(143, 148, 251, 1)),
+                                      color: Color.fromRGBO(143, 148, 251, 1),
+                                    ),
                                   ),
                                 ),
                                 child: TextField(
-                                  controller: widget._emailController,
+                                  controller: _emailController,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "Email",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "Email",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                               Container(
@@ -226,17 +212,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                        color:
-                                            Color.fromRGBO(143, 148, 251, 1)),
+                                      color: Color.fromRGBO(143, 148, 251, 1),
+                                    ),
                                   ),
                                 ),
                                 child: TextField(
-                                  controller: widget._usernameController,
+                                  controller: _usernameController,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "First Name",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "First Name",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                               Container(
@@ -244,17 +232,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                        color:
-                                            Color.fromRGBO(143, 148, 251, 1)),
+                                      color: Color.fromRGBO(143, 148, 251, 1),
+                                    ),
                                   ),
                                 ),
                                 child: TextField(
-                                  controller: widget._lastnameController,
+                                  controller: _lastnameController,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "Last Name",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "Last Name",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                               Container(
@@ -262,18 +252,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                        color:
-                                            Color.fromRGBO(143, 148, 251, 1)),
+                                      color: Color.fromRGBO(143, 148, 251, 1),
+                                    ),
                                   ),
                                 ),
                                 child: TextField(
-                                  controller: widget._passwordController,
+                                  controller: _passwordController,
                                   obscureText: true,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "Password",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "Password",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                               Container(
@@ -281,18 +273,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 decoration: BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
-                                        color:
-                                            Color.fromRGBO(143, 148, 251, 1)),
+                                      color: Color.fromRGBO(143, 148, 251, 1),
+                                    ),
                                   ),
                                 ),
                                 child: TextField(
-                                  controller: widget._confirmPasswordController,
+                                  controller: _confirmPasswordController,
                                   obscureText: true,
                                   decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      hintText: "Confirm Password",
-                                      hintStyle:
-                                          TextStyle(color: Colors.grey[700])),
+                                    border: InputBorder.none,
+                                    hintText: "Confirm Password",
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -300,45 +294,60 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                       SizedBox(height: 30),
-                      FadeInUp(
-                        duration: Duration(milliseconds: 1900),
-                        child: GestureDetector(
-                          onTap: signup,
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color.fromRGBO(143, 148, 251, 1),
-                                  Color.fromRGBO(143, 148, 251, .6),
-                                ],
+                      _isLoading
+                          ? CircularProgressIndicator()
+                          : FadeInUp(
+                              duration: Duration(milliseconds: 1900),
+                              child: GestureDetector(
+                                onTap: signup,
+                                child: Container(
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color.fromRGBO(143, 148, 251, 1),
+                                        Color.fromRGBO(143, 148, 251, .6),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Sign Up",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                            child: Center(
-                              child: Text(
-                                "Sign Up",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                       SizedBox(height: 30),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
+                      Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors
+                              .blue, // Choose your desired background color
+                          borderRadius: BorderRadius.circular(
+                              10), // Optional: Add border radius
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => LoginScreen()));
-                        },
-                        child: Text(
-                          "Have an account? Login",
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 245, 237, 5)),
+                                builder: (context) => LoginScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Have an account? Login",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 245, 237, 5),
+                            ),
+                          ),
                         ),
                       ),
                     ],

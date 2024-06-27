@@ -70,7 +70,7 @@ class CustomDrawer extends StatelessWidget {
                       color: Colors.white,
                     ),
                     label: Text(
-                      'Diaries',
+                      'Notes',
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(

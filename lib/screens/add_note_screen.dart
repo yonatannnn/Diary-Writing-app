@@ -4,6 +4,7 @@ import 'package:diary/services/authService.dart';
 import 'package:diary/services/noteService.dart';
 import 'package:diary/widgets/Drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -49,8 +50,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
     print('prividers user ${user}');
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Note"),
-      ),
+        title: Text("Add Note",style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,),
       drawer: CustomDrawer(),
       body: Stack(
         children: [

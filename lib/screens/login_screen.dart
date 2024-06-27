@@ -1,9 +1,9 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:diary/screens/home_screen.dart';
 import 'package:diary/screens/registration_screen.dart';
 import 'package:diary/services/authService.dart';
+import 'package:animate_do/animate_do.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key? key}) : super(key: key);
@@ -23,8 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final authService = Provider.of<AuthService>(context, listen: false);
-
-    // Validation checks
     if (!_isValidEmail(_emailController.text)) {
       _showErrorDialog("Invalid Email");
       setState(() {
@@ -98,10 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          if (_isLoading)
-            Center(
-              child: CircularProgressIndicator(),
-            ),
           SingleChildScrollView(
             child: Container(
               height: MediaQuery.of(context).size.height,
@@ -187,46 +181,58 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: 30),
                       FadeInUp(
                         duration: Duration(milliseconds: 1900),
-                        child: GestureDetector(
-                          onTap: login,
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color.fromRGBO(143, 148, 251, 1),
-                                  Color.fromRGBO(143, 148, 251, .6),
-                                ],
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Login",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                        child: _isLoading
+                            ? CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              )
+                            : GestureDetector(
+                                onTap: login,
+                                child: Container(
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color.fromRGBO(143, 148, 251, 1),
+                                        Color.fromRGBO(143, 148, 251, .6),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Login",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
                       ),
                       SizedBox(height: 30),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RegistrationScreen(),
+                      Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RegistrationScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Don't have an account? REGISTER",
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 157, 3, 3),
                             ),
-                          );
-                        },
-                        child: Text(
-                          "Don't have an account? REGISTER",
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 245, 29, 5),
                           ),
                         ),
                       ),

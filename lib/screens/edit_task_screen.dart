@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -73,8 +74,9 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit Task"),
-      ),
+        title: Text("Edit Task" , style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,),
       body: Stack(
         children: [
           Container(

@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:diary/models/user_model.dart'
-    as userModel; // Alias the User model
+    as userModel; 
 import 'package:diary/services/authService.dart';
 import 'package:diary/services/userService.dart';
 
@@ -29,26 +30,21 @@ class Welcome extends StatelessWidget {
         }
 
         final userData = snapshot.data;
-        String taskOrDiary = isDiary ? 'Diaries' : 'Tasks';
+        String taskOrDiary = isDiary ? 'Notes' : 'Tasks';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              userData != null ? 'Hi, ${userData.firstName}' : 'Loading...',
-              style: TextStyle(
-                fontSize: 24,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(userData != null ? 'Hi, ${userData.firstName}' : 'Loading...',
+                style: GoogleFonts.aBeeZee(
+                    fontSize: 25,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Text(
-              'These are your $taskOrDiary',
-              style: TextStyle(
-                fontSize: 18,
-                color: Color.fromARGB(255, 254, 252, 252),
-              ),
-            ),
+            Text('These are your $taskOrDiary',
+                style: GoogleFonts.aBeeZee(
+                  fontSize: 15,
+                  color: Colors.white,
+                )),
           ],
         );
       },

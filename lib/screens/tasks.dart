@@ -10,6 +10,7 @@ import 'package:diary/widgets/single_task_widget.dart';
 import 'package:diary/widgets/welcome.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class Tasks extends StatelessWidget {
@@ -30,7 +31,10 @@ class Tasks extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Tasks'),
+        title: Text('Your Tasks',
+            style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
@@ -87,8 +91,11 @@ class Tasks extends StatelessWidget {
 
                           if (userTasks.isEmpty) {
                             return Center(
-                                child:
-                                    Text('No tasks available for $userEmail.'));
+                                child: Text('No Tasks Found.',
+                                    style: GoogleFonts.aBeeZee(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)));
                           }
 
                           return ListView.builder(

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:diary/models/note_model.dart'; // Update this to import Task model if needed
 import 'package:diary/services/taskService.dart';
@@ -27,7 +28,10 @@ class TaskDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Task Details'),
+        title: Text('Task Details',
+            style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -90,25 +94,8 @@ class TaskDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditTaskScreen(
-                                id: id,
-                                title: title,
-                                description: description,
-                                date: date,
-                                time: time,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Text('Edit'),
-                      ),
                       SizedBox(width: 20),
                       ElevatedButton(
                         onPressed: () async {

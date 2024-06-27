@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 import 'package:diary/screens/tasks.dart';
 import 'package:diary/services/authService.dart';
@@ -8,7 +10,12 @@ import 'package:diary/widgets/Drawer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
@@ -23,8 +30,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
 
-  final Taskservice noteService = Taskservice();
-  final userService = UserService();
+  final Taskservice taskService = Taskservice();
+  final UserService userService = UserService();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   NotificationService notificationService = NotificationService();
@@ -32,6 +39,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   TimeOfDay? selectedTime;
 
   String userEmail = 'Loading';
+  String? fcmToken;
 
   @override
   void initState() {
@@ -53,6 +61,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         userEmail = 'No user signed in';
       });
     }
+    // Retrieve FCM token from SharedPreferences
+    retrieveFCMToken();
+  }
+
+  // Function to retrieve FCM token from SharedPreferences
+  void retrieveFCMToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      fcmToken = prefs.getString('userToken');
+    });
   }
 
   bool isValidTitleController(String title) {
@@ -64,6 +82,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   void showSnackBar(String message, {bool isSuccess = false}) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -72,7 +92,66 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
   }
 
-  Future<void> _scheduleNotification(String title, String body) async {
+  Future<void> _scheduleNotification(String title, String body,
+      DateTime selectedDate, TimeOfDay selectedTime) async {
+    final now = DateTime.now();
+
+    DateTime scheduledDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
+    int secondsUntilNotification = scheduledDateTime.difference(now).inSeconds;
+    if (secondsUntilNotification > 86400) {
+      DateTime dayBeforeNotificationTime =
+          scheduledDateTime.subtract(Duration(days: 1));
+      await _scheduleSingleNotification(
+          'Reminder (1 day before)', title, body, dayBeforeNotificationTime);
+
+      // Send push notification 1 day before
+      await sendPushNotification(
+          title: 'Reminder (1 day before)',
+          body: '$title: $body',
+          selectedDate: dayBeforeNotificationTime,
+          selectedTime: selectedTime);
+    }
+    if (secondsUntilNotification > 600) {
+      DateTime tenMinutesBeforeNotificationTime =
+          scheduledDateTime.subtract(Duration(minutes: 10));
+      await _scheduleSingleNotification('Reminder (10 min before)', title, body,
+          tenMinutesBeforeNotificationTime);
+
+      await sendPushNotification(
+          title: 'Reminder (10 min before)',
+          body: '$title: $body',
+          selectedDate: tenMinutesBeforeNotificationTime,
+          selectedTime: selectedTime);
+    }
+
+    await _scheduleSingleNotification(
+        'Reminder', title, body, scheduledDateTime);
+
+    await sendPushNotification(
+        title: 'Reminder',
+        body: '$title: $body',
+        selectedDate: scheduledDateTime,
+        selectedTime: selectedTime);
+  }
+
+  Future<void> _scheduleSingleNotification(String notificationTitle,
+      String title, String body, DateTime notificationTime) async {
+    final now = DateTime.now();
+    int secondsUntilNotification = notificationTime.difference(now).inSeconds;
+
+    if (secondsUntilNotification < 0) {
+      secondsUntilNotification = 0;
+    }
+
+    await Future.delayed(Duration(seconds: secondsUntilNotification));
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'your_channel_id',
@@ -82,22 +161,95 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
-
     await flutterLocalNotificationsPlugin.show(
       0,
-      title,
+      notificationTitle,
       body,
       platformChannelSpecifics,
       payload: 'item x',
     );
   }
 
+  Future<void> sendPushNotification(
+      {required String title,
+      required String body,
+      required DateTime selectedDate,
+      required TimeOfDay selectedTime}) async {
+    final now = DateTime.now();
+    final currentTime = TimeOfDay.now();
+    DateTime scheduledDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+    int secondsUntilNotification = scheduledDateTime.difference(now).inSeconds;
+    if (secondsUntilNotification < 0) {
+      secondsUntilNotification = 0;
+    }
+    await Future.delayed(Duration(seconds: secondsUntilNotification));
+
+    if (fcmToken == null) {
+      print('FCM token not available');
+      return;
+    }
+
+    //serviceAccountJson here with 3
+
+    final serviceAccount =
+        ServiceAccountCredentials.fromJson(serviceAccountJson);
+
+    final scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
+
+    final client = await clientViaServiceAccount(serviceAccount, scopes);
+
+    final url = Uri.parse(
+        'https://fcm.googleapis.com/v1/projects/diary-app-8d5de/messages:send');
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${client.credentials.accessToken.data}',
+    };
+
+    final payload = jsonEncode({
+      'message': {
+        'token': fcmToken,
+        'notification': {
+          'title': title,
+          'body': body,
+        },
+      },
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: payload,
+      );
+
+      if (response.statusCode == 200) {
+        print('Push notification sent successfully');
+      } else {
+        print('Failed to send push notification: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error sending push notification: $e');
+    } finally {
+      client.close();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('new user email ${userEmail}');
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Task"),
+        title: Text("Add Task",
+            style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,
       ),
       drawer: CustomDrawer(),
       body: Stack(
@@ -125,8 +277,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
                               initialDate: DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2100),
                             );
 
                             if (pickedDate != null) {
@@ -239,13 +391,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                     selectedTime!,
                                     userEmail,
                                   );
-
-                                  // Schedule local notification
-                                  await _scheduleNotification(
-                                      title, description);
-
-                                  showSnackBar(
-                                      'Notification sent successfully!');
                                   showSnackBar("Task added successfully!",
                                       isSuccess: true);
                                   Navigator.pushReplacement(
@@ -254,6 +399,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                       builder: (context) => Tasks(),
                                     ),
                                   );
+                                  await _scheduleNotification('Reminder', title,
+                                      selectedDate!, selectedTime!);
+
+                                  await sendPushNotification(
+                                    selectedTime: selectedTime!,
+                                    selectedDate: selectedDate!,
+                                    title: 'Reminder',
+                                    body: title,
+                                  );
+                                  showSnackBar("Task added successfully!",
+                                      isSuccess: true);
                                 } catch (e) {
                                   showSnackBar("Failed to add task: $e");
                                 }

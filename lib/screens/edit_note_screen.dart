@@ -4,6 +4,7 @@ import 'package:diary/services/authService.dart';
 import 'package:diary/services/noteService.dart';
 import 'package:diary/widgets/Drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -61,8 +62,9 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     final user = Provider.of<User?>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit Note"),
-      ),
+        title: Text("Edit Note" , style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,),
       drawer: CustomDrawer(),
       body: Stack(
         children: [

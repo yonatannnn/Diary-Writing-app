@@ -23,14 +23,30 @@ class TaskWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String newTitle = title.substring(0, 1).toUpperCase() + title.substring(1).toLowerCase();
+    String newTitle =
+        title.substring(0, 1).toUpperCase() + title.substring(1).toLowerCase();
+
+    DateTime now = DateTime.now();
+    DateTime taskDateTime =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+
+    Color cardColor;
+    if (isChecked) {
+      cardColor = Colors.blue; 
+    } else {
+      if (now.isAfter(taskDateTime)) {
+        cardColor = Colors.red; 
+      } else {
+        cardColor = Colors.black87; 
+      }
+    }
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.8,
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: Card(
         elevation: 3,
-        color: Colors.black87.withOpacity(0.8),
+        color: cardColor.withOpacity(0.8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -45,9 +61,9 @@ class TaskWidget extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            '$date',
+            '$date $time', // Display both date and time
             style: TextStyle(
-              color: Colors.white70,
+              color: Colors.white,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

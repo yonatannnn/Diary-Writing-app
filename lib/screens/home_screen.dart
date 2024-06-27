@@ -10,6 +10,7 @@ import 'package:diary/widgets/single_note_widget.dart';
 import 'package:diary/widgets/welcome.dart';
 import 'package:flutter/material.dart';
 import 'package:diary/models/note_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,7 +32,10 @@ class HomeScreen extends StatelessWidget {
     notification.saveToken();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Your Diaries'),
+        title: Text('Home Page',
+            style:
+                GoogleFonts.aBeeZee(fontSize: 20, fontWeight: FontWeight.bold)),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
@@ -77,7 +81,12 @@ class HomeScreen extends StatelessWidget {
                                 child: Text('Error: ${snapshot.error}'));
                           }
                           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return Center(child: Text('No notes available.'));
+                            return Center(
+                                child: Text('No Notes Found.',
+                                    style: GoogleFonts.aBeeZee(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)));
                           }
 
                           final userNotes = snapshot.data!.where((note) {
@@ -91,7 +100,12 @@ class HomeScreen extends StatelessWidget {
                           }).toList();
 
                           if (userNotes.isEmpty) {
-                            return Center(child: Text('No notes available.'));
+                            return Center(
+                                child: Text('No Notes Found.',
+                                    style: GoogleFonts.aBeeZee(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)));
                           }
 
                           return SingleChildScrollView(
