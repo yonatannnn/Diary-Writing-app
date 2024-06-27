@@ -1,37 +1,60 @@
 import 'dart:ui';
-import 'package:diary/screens/home_screen.dart';
-import 'package:diary/services/authService.dart';
-import 'package:diary/services/noteService.dart';
-import 'package:diary/widgets/Drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:diary/services/authService.dart';
+import 'package:diary/services/taskService.dart';
+import 'package:diary/screens/tasks.dart';
 
-class AddNoteScreen extends StatefulWidget {
-  const AddNoteScreen({super.key});
+class EditTaskScreen extends StatefulWidget {
+  final DateTime date;
+  final String title;
+  final String description;
+  final TimeOfDay time;
+  final String id;
+
+  const EditTaskScreen({
+    required this.time,
+    required this.title,
+    required this.description,
+    required this.date,
+    required this.id,
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _AddNoteScreenState createState() => _AddNoteScreenState();
+  _EditTaskScreenState createState() => _EditTaskScreenState();
 }
 
-class _AddNoteScreenState extends State<AddNoteScreen> {
-  TextEditingController dateController = TextEditingController();
-  TextEditingController titleController = TextEditingController();
-  TextEditingController bodyController = TextEditingController();
-  final NoteService noteService = NoteService();
+class _EditTaskScreenState extends State<EditTaskScreen> {
+  late TextEditingController dateController;
+  late TextEditingController titleController;
+  late TextEditingController descriptionController;
+  late TextEditingController timeController;
+  final Taskservice taskService = Taskservice();
 
   @override
   void initState() {
     super.initState();
-    dateController.text = "${DateTime.now().toLocal()}".split(' ')[0];
+    dateController = TextEditingController(
+      text: DateFormat('yyyy-MM-dd').format(widget.date),
+    );
+
+    timeController = TextEditingController(
+      text:
+          "${widget.time.hour}:${widget.time.minute.toString().padLeft(2, '0')}",
+    );
+    titleController = TextEditingController(text: widget.title);
+    descriptionController = TextEditingController(text: widget.description);
   }
 
   bool isValidTitleController(String title) {
     return title.isNotEmpty;
   }
 
-  bool isValidBodyController(String body) {
-    return body.isNotEmpty;
+  bool isValidBodyController(String description) {
+    return description.isNotEmpty;
   }
 
   void showSnackBar(String message, {bool isSuccess = false}) {
@@ -46,12 +69,12 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<User?>(context);
-    print('prividers user ${user}');
+    final authProvider = Provider.of<AuthService>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Note"),
+        title: Text("Edit Task"),
       ),
-      drawer: CustomDrawer(),
       body: Stack(
         children: [
           Container(
@@ -76,7 +99,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                           onTap: () async {
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
-                              initialDate: DateTime.now(),
+                              initialDate: widget.date,
                               firstDate: DateTime(2000),
                               lastDate: DateTime.now(),
                             );
@@ -84,7 +107,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                             if (pickedDate != null) {
                               setState(() {
                                 dateController.text =
-                                    "${pickedDate.toLocal()}".split(' ')[0];
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
                               });
                             }
                           },
@@ -95,6 +118,39 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                               style: TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 hintText: 'Date',
+                                hintStyle: TextStyle(color: Colors.white),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.2),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: () async {
+                            TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: widget.time,
+                            );
+
+                            if (pickedTime != null) {
+                              setState(() {
+                                timeController.text =
+                                    "${pickedTime.hour}:${pickedTime.minute.toString().padLeft(2, '0')}";
+                              });
+                            }
+                          },
+                          child: AbsorbPointer(
+                            child: TextField(
+                              controller: timeController,
+                              readOnly: true,
+                              style: TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'Time',
                                 hintStyle: TextStyle(color: Colors.white),
                                 filled: true,
                                 fillColor: Colors.white.withOpacity(0.2),
@@ -123,11 +179,11 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                         ),
                         SizedBox(height: 10),
                         TextField(
-                          controller: bodyController,
+                          controller: descriptionController,
                           maxLines: 10,
                           style: TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            hintText: 'Body',
+                            hintText: 'Description',
                             hintStyle: TextStyle(color: Colors.white),
                             filled: true,
                             fillColor: Colors.white.withOpacity(0.2),
@@ -141,36 +197,43 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                         Center(
                           child: ElevatedButton(
                             onPressed: () async {
-                              final authProvider = Provider.of<AuthService>(
-                                  context,
-                                  listen: false);
                               final userEmail = user?.email ?? '';
+
                               final title = titleController.text;
-                              final body = bodyController.text;
+                              final description = descriptionController.text;
 
                               if (isValidTitleController(title) &&
-                                  isValidBodyController(body)) {
+                                  isValidBodyController(description)) {
                                 try {
-                                  await noteService.saveNoteToFirestore(
-                                    dateController.text,
+                                  await taskService.updateTaskInFirestore(
+                                    widget.id,
+                                    DateTime.parse(dateController.text),
                                     title,
-                                    body,
+                                    description,
+                                    TimeOfDay(
+                                      hour: int.parse(
+                                          timeController.text.split(':')[0]),
+                                      minute: int.parse(
+                                          timeController.text.split(':')[1]),
+                                    ),
                                     userEmail,
                                   );
-                                  showSnackBar("Note added successfully!",
+
+                                  showSnackBar("Task updated successfully!",
                                       isSuccess: true);
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => HomeScreen(),
+                                      builder: (context) => Tasks(),
                                     ),
                                   );
                                 } catch (e) {
-                                  showSnackBar("Failed to add note: $e");
+                                  showSnackBar("Failed to update task: $e");
+                                  print(e);
                                 }
                               } else {
                                 showSnackBar(
-                                  'Please enter ${isValidTitleController(title) ? '' : 'title'}${isValidTitleController(title) && isValidBodyController(body) ? '' : ' and '}${isValidBodyController(body) ? '' : 'body'}.',
+                                  'Please enter ${isValidTitleController(title) ? '' : 'title'}${isValidTitleController(title) && isValidBodyController(description) ? '' : ' and '}${isValidBodyController(description) ? '' : 'description'}.',
                                 );
                               }
                             },

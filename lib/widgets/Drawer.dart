@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:diary/screens/add_note_screen.dart';
 import 'package:diary/screens/home_screen.dart';
 import 'package:diary/screens/login_screen.dart';
+import 'package:diary/screens/tasks.dart';
 import 'package:diary/services/authService.dart';
 import 'package:diary/services/noteService.dart';
 import 'package:diary/services/userService.dart';
@@ -65,11 +66,11 @@ class CustomDrawer extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     icon: Icon(
-                      Icons.home,
+                      Icons.note,
                       color: Colors.white,
                     ),
                     label: Text(
-                      'Home',
+                      'Diaries',
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -87,24 +88,12 @@ class CustomDrawer extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    icon: Icon(Icons.logout),
-                    label: Text('Logout'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                    ),
-                    onPressed: () => logout(context),
-                  ),
-                ),
-                SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
                     icon: Icon(
-                      Icons.person_add,
+                      Icons.task,
                       color: Colors.white,
                     ),
                     label: Text(
-                      'Add Note',
+                      'Tasks',
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -113,10 +102,21 @@ class CustomDrawer extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => AddNoteScreen()),
+                        MaterialPageRoute(builder: (context) => Tasks()),
                       );
                     },
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.logout),
+                    label: Text('Logout'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                    ),
+                    onPressed: () => logout(context),
                   ),
                 ),
                 SizedBox(height: 10),

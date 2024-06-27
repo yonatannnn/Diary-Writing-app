@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:diary/models/note_model.dart'; // Ensure this import points to your Note model
+import 'package:diary/models/note_model.dart'; 
 import 'package:flutter/foundation.dart';
 
 class NoteService extends ChangeNotifier {

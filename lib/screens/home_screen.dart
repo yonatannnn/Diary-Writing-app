@@ -3,6 +3,7 @@ import 'package:diary/screens/add_note_screen.dart';
 import 'package:diary/screens/login_screen.dart';
 import 'package:diary/services/authService.dart';
 import 'package:diary/services/noteService.dart';
+import 'package:diary/services/notificationService.dart';
 import 'package:diary/services/userService.dart';
 import 'package:diary/widgets/Drawer.dart';
 import 'package:diary/widgets/single_note_widget.dart';
@@ -11,22 +12,23 @@ import 'package:flutter/material.dart';
 import 'package:diary/models/note_model.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatelessWidget {
   final NoteService noteService = NoteService();
   final userService = UserService();
+  final notification = NotificationService();
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthService>(context);
     final user = Provider.of<User?>(context);
-    print('user ${authProvider.user}');
     if (user == null) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
+    notification.saveToken();
     return Scaffold(
       appBar: AppBar(
         title: Text('Your Diaries'),
@@ -60,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Welcome(),
+                    Welcome(isDiary: true),
                     SizedBox(height: 20),
                     Expanded(
                       child: StreamBuilder<List<Note>>(
@@ -127,7 +129,6 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to the add note screen
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddNoteScreen()),

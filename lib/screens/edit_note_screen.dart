@@ -89,8 +89,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
                               initialDate: DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2000),
                             );
 
                             if (pickedDate != null) {

@@ -32,7 +32,6 @@ class UserService extends ChangeNotifier {
   }
 
   Future<User?> getUserByEmail(String email) async {
-    print('email ====== ${email}');
     try {
       DocumentSnapshot snapshot =
           await _firestore.collection('CustomUsers').doc(email).get();
